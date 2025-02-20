@@ -778,4 +778,4 @@ augroup copilot_close
   endif
 augroup END
 
-# vim: sw=0 ts=2 et
+" vim: sw=0 ts=2 et
