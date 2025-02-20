@@ -77,6 +77,21 @@ function! s:Send(instance, request) abort
   if !has_key(a:instance, 'job')
     return v:false
   endif
+  if get(a:request,"method") == "textDocument/didChange"
+    let forced_files = []
+  if exists("g:copilot_context_file")
+    let a:request['params']['contentChanges'][0]['text'] .= "\n" .. system("cat " .. shellescape(expand(g:copilot_context_file)))
+    let forced_files += [expand(g:copilot_context_file)]
+  endif
+  if exists("b:workspace_folder") && isdirectory(b:workspace_folder)
+    for file_to_force in glob(b:workspace_folder,v:false,v:true)
+      if index(forced_files,file_to_force) == -1
+        let a:request['params']['contentChanges'][0]['text'] .= "\n" .. system("cat " .. shellescape(file_to_force))
+        let forced_files += [file_to_force]
+      endif
+    endfor
+  endif
+  endif
   try
     call ch_sendexpr(a:instance.job, a:request)
     return v:true
@@ -762,3 +777,5 @@ augroup copilot_close
     autocmd BufUnload * call s:CloseBuffer(+expand('<abuf>'))
   endif
 augroup END
+
+# vim: sw=0 ts=2 et
